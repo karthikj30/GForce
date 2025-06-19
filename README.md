@@ -1,9 +1,8 @@
-# Advanced India Air Pollution Prediction Map
+# Advanced India Air Pollution Map with Cloud Effects
 
 ✅ Predict PM2.5 using ML  
-✅ Date range filtering  
-✅ Heatmap visualization  
-✅ Color-coded circle markers  
-✅ Live interactive map with Streamlit
+✅ Dynamic Date Range Filtering  
+✅ Heatmap with Cloudy Overlay  
+✅ Live Interactive Map with Streamlit
 
-Deployable directly on Streamlit Cloud.
+Deployable directly on Streamlit Cloud for hackathons!
