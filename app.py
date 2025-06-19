@@ -5,7 +5,7 @@ from folium.plugins import HeatMapWithTime
 from streamlit_folium import st_folium
 
 st.set_page_config(layout="wide")
-st.title("🌫️ India Air Pollution - Hackathon Ultimate App 🚀")
+st.title("🌫️ India Air Pollution - Hackathon Ultimate Final App 🚀")
 
 # Load data
 data = pd.read_csv("predictions.csv", parse_dates=['Date'])
@@ -30,20 +30,27 @@ if selected_city != 'All':
 # Create folium map
 m = folium.Map(location=[22.9734, 78.6569], zoom_start=5)
 
-# Animated heatmap data
+# Safely prepare data for animated heatmap
 heatmap_data = []
-for date, day_df in filtered_data.groupby('Date'):
-    heatmap_data.append(
-        [[row['Latitude'], row['Longitude'], row['Predicted_PM2.5']] for index, row in day_df.iterrows()]
-    )
+time_index = []
 
-HeatMapWithTime(
-    heatmap_data,
-    index=filtered_data['Date'].dt.strftime('%Y-%m-%d').unique().tolist(),
-    radius=15,
-    auto_play=True,
-    max_opacity=0.9
-).add_to(m)
+for date, day_df in filtered_data.groupby('Date'):
+    frame = [[row['Latitude'], row['Longitude'], row['Predicted_PM2.5']] for index, row in day_df.iterrows()]
+    if frame:
+        heatmap_data.append(frame)
+        time_index.append(date.strftime('%Y-%m-%d'))
+
+# Only add HeatMapWithTime if we have valid data
+if heatmap_data:
+    HeatMapWithTime(
+        heatmap_data,
+        index=time_index,
+        radius=15,
+        auto_play=True,
+        max_opacity=0.9
+    ).add_to(m)
+else:
+    st.warning("⚠️ No data found for selected filters.")
 
 # Circle markers + cloud effect
 for i, row in filtered_data.iterrows():
@@ -80,7 +87,3 @@ st.markdown("""
 </div>
 <p style='text-align: center;'>Low PM2.5 ←→ High PM2.5</p>
 """, unsafe_allow_html=True)
-
-# Export option
-if st.button("📷 Export Map Screenshot"):
-    st.warning("You can take screenshot manually or use browser capture tools. Streamlit-folium export still experimental!")
