@@ -1,8 +1,7 @@
-# Advanced India Air Pollution Map with Cloud Effects
+# Hackathon Ultimate Air Pollution App 🚀
 
-✅ Predict PM2.5 using ML  
-✅ Dynamic Date Range Filtering  
-✅ Heatmap with Cloudy Overlay  
-✅ Live Interactive Map with Streamlit
-
-Deployable directly on Streamlit Cloud for hackathons!
+- Predicts PM2.5 using AI
+- Animated heatmap with timeline
+- Dynamic city filtering
+- Cloud haze overlay for high pollution
+- Fully deployable on Streamlit Cloud

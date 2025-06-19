@@ -1,34 +1,51 @@
 import streamlit as st
 import pandas as pd
 import folium
-from folium.plugins import HeatMap
+from folium.plugins import HeatMapWithTime
 from streamlit_folium import st_folium
 
 st.set_page_config(layout="wide")
-st.title("🌫️ India Air Pollution Cloud Map - Hackathon Special")
+st.title("🌫️ India Air Pollution - Hackathon Ultimate App 🚀")
 
+# Load data
 data = pd.read_csv("predictions.csv", parse_dates=['Date'])
 
 # Sidebar filters
-st.sidebar.header("Filter")
+st.sidebar.header("Filters")
+cities = ['All'] + sorted(data['City'].unique().tolist())
+selected_city = st.sidebar.selectbox("Select City", cities)
+threshold = st.sidebar.slider("PM2.5 Threshold for Red", 50, 300, 150)
+
 min_date, max_date = data['Date'].min(), data['Date'].max()
 date_range = st.sidebar.date_input("Select Date Range", [min_date, max_date])
 
-threshold = st.sidebar.slider("PM2.5 Threshold for Red", 50, 300, 150)
-
+# Apply filters
 filtered_data = data[
-    (data['Date'] >= pd.to_datetime(date_range[0])) & 
+    (data['Date'] >= pd.to_datetime(date_range[0])) &
     (data['Date'] <= pd.to_datetime(date_range[1]))
 ]
+if selected_city != 'All':
+    filtered_data = filtered_data[filtered_data['City'] == selected_city]
 
-# Base Map
+# Create folium map
 m = folium.Map(location=[22.9734, 78.6569], zoom_start=5)
 
-# Add heatmap layer
-heat_data = [[row['Latitude'], row['Longitude'], row['Predicted_PM2.5']] for index, row in filtered_data.iterrows()]
-HeatMap(heat_data, min_opacity=0.4, max_opacity=0.9, radius=15, blur=20).add_to(m)
+# Animated heatmap data
+heatmap_data = []
+for date, day_df in filtered_data.groupby('Date'):
+    heatmap_data.append(
+        [[row['Latitude'], row['Longitude'], row['Predicted_PM2.5']] for index, row in day_df.iterrows()]
+    )
 
-# Add markers + cloudy effect simulation
+HeatMapWithTime(
+    heatmap_data,
+    index=filtered_data['Date'].dt.strftime('%Y-%m-%d').unique().tolist(),
+    radius=15,
+    auto_play=True,
+    max_opacity=0.9
+).add_to(m)
+
+# Circle markers + cloud effect
 for i, row in filtered_data.iterrows():
     pm = row['Predicted_PM2.5']
     color = 'green' if pm < 50 else 'orange' if pm < threshold else 'red'
@@ -36,12 +53,11 @@ for i, row in filtered_data.iterrows():
 
     folium.CircleMarker(
         location=[row['Latitude'], row['Longitude']],
-        radius=6,
+        radius=5,
         color=color,
         fill=True,
-        fill_color=color,
         fill_opacity=0.9,
-        popup=f"PM2.5: {pm:.1f}<br>Date: {row['Date'].date()}"
+        popup=f"City: {row['City']}<br>PM2.5: {pm:.1f}<br>Date: {row['Date'].date()}"
     ).add_to(m)
 
     if opacity > 0:
@@ -54,6 +70,7 @@ for i, row in filtered_data.iterrows():
             fill_opacity=opacity
         ).add_to(m)
 
+# Display map
 st_folium(m, width=1300, height=700)
 
 # Colorbar legend
@@ -63,3 +80,7 @@ st.markdown("""
 </div>
 <p style='text-align: center;'>Low PM2.5 ←→ High PM2.5</p>
 """, unsafe_allow_html=True)
+
+# Export option
+if st.button("📷 Export Map Screenshot"):
+    st.warning("You can take screenshot manually or use browser capture tools. Streamlit-folium export still experimental!")
